@@ -280,7 +280,7 @@ def predicted_len(precursor_mass: float, precursor_charge: int) -> int:
     return math.ceil(precursor_mass / gen_spectra.get_precursor('G', precursor_charge))
 
 def predicted_len_precursor(spectrum: Spectrum, sequence: str) -> int:
-    '''Make a prediction of the peptide length give a spectrum and the current 
+    '''Make a prediction of the peptide length given a spectrum and the current 
     sequence. 
 
     :param spectrum: The observed spectrum 
@@ -311,6 +311,7 @@ def hashable_boundaries(boundaries: list) -> str:
     :rtype: str
     '''
     if ((len(boundaries)) in range(0,2)):
+        print ('-'.join([str(x) for x in boundaries]))
         return '-'.join([str(x) for x in boundaries])
 
 def cosine_similarity(a: list, b: list) -> float:

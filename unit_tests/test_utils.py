@@ -18,7 +18,7 @@ class test_utils(unittest.TestCase):
         ]
 
     def test_ppm_to_da(self):
-        #Tests the conver ppm to da function with a mass of 100 and a tolerance of 20. 20 ppm of 100 should be .002
+        #Tests the convert ppm to da function with a mass of 100 and a tolerance of 20. 20 ppm of 100 should be .002
         mass = 100
         tol = 20
         self.assertEqual(utils.ppm_to_da(mass, tol), .002, '20 ppm of 100 should be .002')
@@ -44,7 +44,9 @@ class test_utils(unittest.TestCase):
         dir = os.path.join('foo', 'bar')
         self.assertFalse(os.path.isdir(dir))
         utils.make_dir(dir)
+        #Case2: Directory exists. Should do nothing
         self.assertTrue(os.path.isdir(dir))
+        os.rmdir(dir)
 
         #Case2: Directory already exists. Nothing should happen
         self.assertTrue(os.path.isdir(dir))
@@ -151,17 +153,19 @@ class test_utils(unittest.TestCase):
         self.assertEqual(utils.predicted_len(precursor, charge), 11)
     
     def test_predicted_len_precursor(self): 
-        sequence = 'MALWAR'
-        spectrum = Spectrum(gen_spectra.gen_spectrum(sequence), gen_spectra.get_precursor(sequence))
-        expected_length = (len(sequence) * (spectrum.precursor_mass / 728.379201))
+        #Run the predicted_len_precursor function with the sequence 'MAL' and the spectrum for 'MALWAR'. 
+        sequence = 'MAL'
+        spectrum = Spectrum
+        expected_length = 6
+        # expected_length = math.ceil((len(sequence) * (spectrum.precursor_mass / 728.379201)))
         self.assertEqual(utils.predicted_len_precursor(spectrum, sequence), expected_length)
     
     def test_hashable_boundaries(self):
         #run the hashable_boundaries function with two lists of boundaries
-        boundaries2 = [2,10] #Expected to return 2-10
-        boundaries3 = [3,5,7] #Expected to return nothing
-        self.assertEqual(utils.hashable_boundaries(boundaries2), '2-10')
-        self.assertEqual(utils.hashable_boundaries(boundaries3), None)
+        boundaries1 = [2,10] #Expected to return 2-10
+        boundaries2 = [3,5,7] #Expected to return nothing
+        self.assertEqual(utils.hashable_boundaries(boundaries1), '2-10')
+        self.assertEqual(utils.hashable_boundaries(boundaries2), None)
 
     def test_split_hybrid(self):  
         #run the split_hybrid function with two samples sequence
