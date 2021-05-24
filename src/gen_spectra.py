@@ -105,7 +105,8 @@ def calc_masses(sequence: str, charge: int =None, ion: str = None) -> (list):
     return masses
 
 def max_mass(seqeunce: str, ion: str, charge: int) -> float:
-    '''Calculate the maximum mass of a sequence of an ion type and charge
+    '''DEPRECATED
+    Calculate the maximum mass of a sequence of an ion type and charge
 
     :param sequence: the sequence to generate the max mass for
     :type sequence: str

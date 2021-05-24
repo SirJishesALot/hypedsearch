@@ -1,3 +1,4 @@
+from typing import Tuple
 from src.scoring import scoring
 from src.objects import Spectrum, SequenceAlignment, HybridSequenceAlignment, Database, Alignments, DEVFallOffEntry
 from src.alignment import alignment_utils, hybrid_alignment
@@ -34,7 +35,7 @@ def same_protein_alignment(
     seq1: str, 
     seq2: str, 
     parent_sequence: str
-    ) -> (str, str):
+    ) -> Tuple[str, str]:
     '''Attempt to create a non-hybrid alignment from two sequences from the same 
     protein. If the two sequences do not directly overlap but are close enough 
     and from the same protein, make the alignment. If not, create a hybrid 

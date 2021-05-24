@@ -1,1 +1,1 @@
-B and Y full bipartite alignment time: 0.17392921447753906s 	 average dataset size233.33333333333334 	 seconds/op: 0.0002484703063964844s
+B and Y full bipartite alignment time: 0.5622248649597168s 	 average dataset size233.33333333333334 	 seconds/op: 0.0008031783785138811s

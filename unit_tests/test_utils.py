@@ -1,5 +1,6 @@
 import unittest
 import os
+import shutil
 from src import utils
 from src import gen_spectra
 from src.objects import Spectrum
@@ -16,7 +17,9 @@ class test_utils(unittest.TestCase):
         self.tosortindex = [
             ('b', 2), ('e', 18), ('d', 11), ('a', -1), ('c', 3)
         ]
-
+    
+    
+        
     def test_ppm_to_da(self):
         #Tests the convert ppm to da function with a mass of 100 and a tolerance of 20. 20 ppm of 100 should be .002
         mass = 100
@@ -30,23 +33,20 @@ class test_utils(unittest.TestCase):
         self.assertTrue(utils.file_exists(filename)) # This file exists in the directory
         self.assertFalse(utils.file_exists(filename2)) # This file does not exist in the directory
 
-    def test_make_valid_dir(self):
+    def test_make_valid_dir_string(self):
         #Run the utils.make_valid_dir_string function with path which includes os seperator character and
         # one path which does not include an os seperator character
-        path1 = 'C:\\Users'
-        path2 = "C:\\Users\\"
-        self.assertEqual(utils.make_valid_dir_string(path1), 'C:\\Users\\')
-        self.assertEqual(utils.make_valid_dir_string(path2), 'C\\Users\\')
+        path1 = '/mnt/c/Users'
+        path2 = "/mnt/c/Users/"
+        self.assertEqual(utils.make_valid_dir_string(path1), '/mnt/c/Users/')
+        self.assertEqual(utils.make_valid_dir_string(path2), '/mnt/c/Users/')
     
     def test_make_dir(self):
         #Run the utils.make_dir function with a directory which exists and a directory which does not exist
         #Case1: Directory does not exist. Should make a new directory
-        dir = os.path.join('foo', 'bar')
+        dir = os.getcwd() + '/not_a_dir'
         self.assertFalse(os.path.isdir(dir))
         utils.make_dir(dir)
-        #Case2: Directory exists. Should do nothing
-        self.assertTrue(os.path.isdir(dir))
-        os.rmdir(dir)
 
         #Case2: Directory already exists. Nothing should happen
         self.assertTrue(os.path.isdir(dir))
@@ -98,10 +98,11 @@ class test_utils(unittest.TestCase):
     
     def test_is_dir(self): 
         #Run the utils.is_dir function with a path which is a valid path to a directory and a path which isn't
-        filename = os.path.join('foo', 'bar')
-        self.assertFalse(utils.is_dir(filename))
-        utils.make_dir(filename)
-        self.assertTrue(utils.is_dir(filename))
+        dir = os.getcwd() + '/not_a_dir'
+        self.assertFalse(utils.is_dir(dir))
+        utils.make_dir(dir)
+        self.assertTrue(utils.is_dir(dir))
+        shutil.rmtree(dir)
 
     def test_is_fle(self):
         #Run the utils.is_file function with a file and a file which does not exist
@@ -121,18 +122,13 @@ class test_utils(unittest.TestCase):
         self.assertEqual(sorted(utils.all_perms_of_s(string1, keyletter1)), sorted(['LMWHOMP', 'JMWHOMP', 'IMWHOMP']))
         self.assertEqual(sorted(utils.all_perms_of_s(string2, keyletter2)), sorted(['MALWAR MZHL', 'MAHWAR MZHL', 
             'MALWAR MZLL', 'MALWAR MZHH', 'MAHWAR MZLL', 'MAHWAR MZHH', 'MAHWAR MZLH', 'MALWAR MZLH']))
-    
-    def test_make_sparse_array(self): #TODO
-        #Run the utils.make_sparse_array function with two sample spectrums and bin widths
-        spectrum1 = [1.5, 3, 2.3, 5, 2.2, 35, 5, 16]
-        spectrum2 = [3.5, 62, 5, 6, 7.8, 1.1, 2, 4.556, 34]
 
     def test_overlap_intervals(self):
         #Run the utils.overlap_intervals function with two different intervals. One set will overlap and one won't
         intervals1 = [[0,3], [2,5], [3,7]] #Expected to return [0,7]
-        intervals2 = [[-1,4], [6,15]] #Expected not to return anything
-        self.assertEqual(utils.overlap_intervals(intervals1), [0,5])
-        self.assertEqual(utils.overlap_intervals(intervals2))
+        intervals2 = [[-1,4], [6,15]] #Expected to return itself
+        self.assertEqual(utils.overlap_intervals(intervals1), [[0,7]])
+        self.assertEqual(utils.overlap_intervals(intervals2), intervals2)
     
     def test_to_percent(self):
         #Run the utils.to_percent function with two different values to convert to a percent.
@@ -141,23 +137,23 @@ class test_utils(unittest.TestCase):
         value2 = 234
         total2 = 3456 #Expected: 7%
         self.assertEqual(utils.to_percent(value1, total1), 53)
-        self.assertEqual(utils.to_percent(value2, total2), 7)
+        self.assertEqual(utils.to_percent(value2, total2), 6)
     
     def test_predicted_len(self):
         #Run the utils.predicted_len function with two different precursor masses.
-        precursor = 240 #Expected len would be 5
+        precursor = 240 #Expected len would be 4
         charge = 1
-        self.assertEqual(utils.predicted_len(precursor, charge), 5)
+        self.assertEqual(utils.predicted_len(precursor, charge), 4)
         precursor = precursor * 5
-        charge = charge + 1 #Expected len would be 11
-        self.assertEqual(utils.predicted_len(precursor, charge), 11)
+        charge = charge + 1 #Expected len would be 32
+        self.assertEqual(utils.predicted_len(precursor, charge), 32)
     
     def test_predicted_len_precursor(self): 
         #Run the predicted_len_precursor function with the sequence 'MAL' and the spectrum for 'MALWAR'. 
         sequence = 'MAL'
-        spectrum = Spectrum
-        expected_length = 6
-        # expected_length = math.ceil((len(sequence) * (spectrum.precursor_mass / 728.379201)))
+        spectrum = Spectrum(gen_spectra.gen_spectra('MALWAR'), [], 0, 0, -1, gen_spectra.get_precursor('MALWAR'), 1)
+        expected_length = 7 #Note that while "MALWAR" has a length of 6, the calculation is intentially rounded up because
+        #it is better to overshoot than undershoot
         self.assertEqual(utils.predicted_len_precursor(spectrum, sequence), expected_length)
     
     def test_hashable_boundaries(self):

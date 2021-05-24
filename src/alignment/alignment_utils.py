@@ -1,3 +1,4 @@
+from typing import Tuple
 from src.objects import Database, Spectrum
 from src.scoring import scoring
 
@@ -370,7 +371,7 @@ def get_parents(
     seq: str, 
     db: Database, 
     ion: str = None
-    ) -> (list, list):
+    ) -> Tuple[list, list]:
     ''' Get the parents of a sequence. If the sequence is a hybrid sequence, 
     then the second entry of the tuple holds a list of proteins for the right 
     contributor, otherwise the right entry is empty.

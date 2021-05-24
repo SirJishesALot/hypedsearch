@@ -7,7 +7,7 @@ import re
 import numpy as np
 
 
-from typing import Iterable, Any
+from typing import Iterable, Any, Tuple
 from itertools import product
 from collections import namedtuple
 
@@ -263,7 +263,7 @@ def overlap_intervals(intervals: list) -> list:
     return merged  
 
 def to_percent(index, total):
-    return int(100 * (index + 1)/total)
+    return int(100 * (index)/total)
 
 def predicted_len(precursor_mass: float, precursor_charge: int) -> int:
     '''The predicted length of a spectrum based on its maximum mass
@@ -310,8 +310,7 @@ def hashable_boundaries(boundaries: list) -> str:
     :returns: A string of the lower and upper bounds connected that looks like <lower_bound>-<upper_bound>
     :rtype: str
     '''
-    if ((len(boundaries)) in range(0,2)):
-        print ('-'.join([str(x) for x in boundaries]))
+    if ((len(boundaries)) in range(1,3)):
         return '-'.join([str(x) for x in boundaries])
 
 def cosine_similarity(a: list, b: list) -> float:
@@ -336,7 +335,7 @@ def cosine_similarity(a: list, b: list) -> float:
 
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def split_hybrid(sequence: str) -> (str, str):
+def split_hybrid(sequence: str) -> Tuple[str, str]:
     '''Split a hybrid sequence into it's left and right components
     
     :param sequence: hybrid sequence with special characters [() -]
