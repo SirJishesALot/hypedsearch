@@ -1,3 +1,4 @@
+from os import write
 from typing import Tuple
 from src.scoring import scoring
 from src.objects import Spectrum, SequenceAlignment, HybridSequenceAlignment, Database, Alignments, DEVFallOffEntry
@@ -200,14 +201,43 @@ def extend_base_kmers(
     :rtype: list
     '''
     # try and create an alignment from each extended b and y ion sequence
-    spec_alignments = []
+    extended_b = []
+    extended_y = []
     #[item for sublist in t for item in sublist]
     for seq in b_kmers:
-        spec_alignments += [x for x in alignment_utils.extend_non_hybrid(seq, spectrum, 'b', db)]
+        extended_b += [x for x in alignment_utils.extend_non_hybrid(seq, spectrum, 'b', db)]
     for seq in y_kmers:
-        spec_alignments += [x for x in alignment_utils.extend_non_hybrid(seq, spectrum, 'y', db)]
+        extended_y += [x for x in alignment_utils.extend_non_hybrid(seq, spectrum, 'y', db)]
 
-    return spec_alignments
+    file1 = open("metadata.txt", "a")
+    # file1.write("b_kmers: \n")
+    # file1.writelines([(L + '\n') for L in b_kmers])
+    # file1.write("extended_b_kmers: \n")
+    # file1.write("extended_b_size: ")
+    # file1.write(str(len(extended_b)) + '\n')
+    # for seq in extended_b:
+    #     file1.write(seq + '\n')
+    # file1.write("y_kmers: \n")
+    # file1.writelines([(L + '\n') for L in y_kmers])
+    # file1.write("extended_y_kmers: \n")
+    # file1.write("extended_y_size: ")
+    # file1.write(str(len(extended_y)) + '\n')
+    # for seq in extended_y:
+    #     file1.write(seq + '\n')
+
+    spec_align = extended_y + extended_b
+    #Checking for duplicates
+    duplicate_list = []
+    for seq in extended_b:
+        for y_seq in extended_y:
+            if seq == y_seq:
+                duplicate_list += seq
+
+    file1.write("There are " + str(len(duplicate_list)) + " duplicates out of " + str(len(spec_align)) + " spectra \n")
+    file1.close()
+    spec_alignments = extended_b + extended_y
+
+    return spec_align
 
 def refine_alignments(
     spectrum: Spectrum, 
@@ -639,7 +669,28 @@ def attempt_alignment(
                     total_error
                 )
             )
+            #looking at scores
+            file1 = open("metadata.txt", 'a')
+            file1.write("non_hybrid_scores \n")
+            i = 0
+            avg_b_score = 0
+            avg_y_score = 0
+            avg_total_score = 0
+            for score in non_hybrid_alignments:
+                avg_b_score = avg_b_score + score[2]
+                avg_y_score = avg_y_score + score[3]
+                avg_total_score = avg_total_score + score[4]
+                i = i + 1
+            
+            avg_b_score = avg_b_score/i
+            file1.write("average b score " + str(avg_b_score) + '\n')
+            avg_y_score = avg_y_score/i
+            file1.write("average y score " + str(avg_y_score) + '\n')
+            avg_total_score = avg_total_score/i
+            file1.write("average total score " + str(avg_total_score) + '\n')
+            file1.close()
 
+        
         # we get a hybrid back
         else: 
 
@@ -659,6 +710,26 @@ def attempt_alignment(
                     total_error
                 )
             )
+            #looking at scores
+            file1 = open("metadata.txt", 'a')
+            file1.write("hybrid_scores \n")
+            i = 0
+            avg_b_score = 0
+            avg_y_score = 0
+            avg_total_score = 0
+            for score in hybrid_alignments:
+                avg_b_score = avg_b_score + score[4]
+                avg_y_score = avg_y_score + score[5]
+                avg_total_score = avg_total_score + score[6]
+                i = i + 1
+            
+            avg_b_score = avg_b_score/i
+            file1.write("average b score " + str(avg_b_score) + '\n')
+            avg_y_score = avg_y_score/i
+            file1.write("average y score " + str(avg_y_score) + '\n')
+            avg_total_score = avg_total_score/i
+            file1.write("average total score " + str(avg_total_score) + '\n')
+            file1.close()
 
     OBJECTIFY_COUNT += len(hybrid_refined)
     OBJECTIFY_TIME += time.time() - st

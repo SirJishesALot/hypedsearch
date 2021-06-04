@@ -220,7 +220,7 @@ def id_spectra(
     :type DEBUG: bool
     :param truth_set: the path to a json file of the desired alignments to make for each spectrum. 
         The format of the file is {spectrum_id: {'sequence': str, 'hybrid': bool, 'parent': str}}. 
-        If left an empty string, the program proceeds as normal. Otherwise results of the analysis
+        If left an empty string, the program proceeds as normal. OFwise results of the analysis
         will be saved in the file 'fall_off.json' saved in the output directory specified.
         (default is '')
     :type truth_set: str

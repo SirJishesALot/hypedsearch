@@ -1,7 +1,7 @@
 from src.objects import SequenceAlignment, Alignments
 
 def __is_swap_up_to_dist(a: str, b: str, i: int, j: int, dist: int, d: list) -> list:
-    '''
+    '''DEPRICATED
     Helper function to edit distance long swaps. Helps identify potential swaps
     and if two chars could be swapped then the entry to d is returned
     '''
@@ -25,7 +25,7 @@ def __is_swap_up_to_dist(a: str, b: str, i: int, j: int, dist: int, d: list) -> 
     return swaps
 
 def __edit_distance_long_swaps(a: str, b: str, dist: int = 0) -> int:
-    '''
+    '''DEPRICATED
     Find the edit distance between two strings allowing for swaps up to a distance dist. 
     
     Example:

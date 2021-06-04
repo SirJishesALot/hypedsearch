@@ -593,44 +593,42 @@ def digest_score(sequence: str, db: Database, digest_type: str) -> int:
     digest = digests[digest_type]
 
     # if left digest cuts left and sequence [0] matches, give it a point
-    left_point = 1 \
-        if any(
-            [x['amino_acid'] == sequence[0] for x in digest['start'] \
-            and x['cut_position'] == 'left']
-        ) else 0
+    left_point = 0
+    for x in digest['start']:
+        if (x['amino_acid'] == sequence[0] and x['cut_position'] == 'left'):
+            left_point = 1
 
     # if right digest cuts right and sequence[-1] matches, give it a point
-    right_point = 1 \
-        if any(
-            [x['amino_acid'] == sequence[-1] for x in digest['end'] \
-            and x['cut_position'] == 'right']
-        ) else 0
+    right_point = 0
+    for x in digest['end']:
+        if(x['amino_acid'] == sequence[-1] and x['cut_position'] == 'right'):
+            right_point = 1
 
+    print(left_point, right_point)
     if left_point + right_point == 2:
         return 2
 
+    print(utils.HYBRID_ALIGNMENT_PATTERN.findall(sequence))
     # check to see if its a hybrid sequence
     if utils.HYBRID_ALIGNMENT_PATTERN.findall(sequence):
 
         # get the left and right halves
         left, right = utils.split_hybrid(sequence)
+        print(left)
+        print(right)
 
         # well first check to see if we can assign a point to left
         # before even looking at the source proteins. If we just look 
         # at the first amino acid and it follows the digest rule, bam we 
         # golden
-        left_point = 1 \
-            if left_point == 1 or any(
-                [x['amino_acid'] == left[0] for x in digest['start'] \
-                and x['cut_position'] == 'left']
-            ) else 0
+        for x in digest['start']:
+            if (left_point == 1 or (x['amino_acid'] == left[0] and x['cut_position'] == 'left')):
+                left_point = 1
 
         # do the same for the right
-        right_point = 1 \
-            if right_point == 1 or any(
-                [x['amino_acid'] == sequence[-1] for x in digest['end'] \
-                and x['cut_position'] == 'right']  
-            ) else 0
+        for x in digest['end']:
+            if (right_point == 1 or (x['amino_acid'] == sequence[-1] and x['cut_position'] == 'right')):
+                right_point = 1
 
         if left_point == 0:
 
@@ -705,6 +703,7 @@ def digest_score(sequence: str, db: Database, digest_type: str) -> int:
         return right_point + left_point
 
     else:
+        print("code is in else")
         # find source proteins
         source_proteins = database.get_proteins_with_subsequence(
             db, sequence

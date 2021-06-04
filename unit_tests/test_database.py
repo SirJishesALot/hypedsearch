@@ -1,0 +1,128 @@
+from os import name
+
+from pyteomics.fasta import Protein
+from src import database
+import unittest
+from src import database
+from src.objects import DatabaseEntry
+
+class test_database(unittest.TestCase): 
+    def test_extract_protein_name(self):
+        #Testing the extract_protein_name function
+        yahyah = 1
+
+    def test_build(self):
+        #Testing the database.build function with our standard database
+        database_string = "/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/raw_inputs/NOD2_E3/filtered_mouse_database.fasta"
+        #Build the database
+        db = database.build(database_string)
+        #Extract the proteins
+        db_prot_only = [x for x in db[1]]
+        #Check each protein in the database can be found in this list
+        #Build another list
+        with open("/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/raw_inputs/NOD2_E3/filtered_mouse_database.fasta") as a_file:
+            for line in a_file:
+                if "MOUSE" in line:
+                    #Check that this name is also in the database
+                    prot = line.split('|')
+                    name = prot[2].split(' ')
+                    self.assertTrue(name[0] in db_prot_only)
+    
+    #Since we are confident it works
+    global db
+    db = database.build("/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/raw_inputs/NOD2_E3/filtered_mouse_database.fasta")
+    
+    def test_get_proteins_with_subsequence(self):
+        #Testing the database.get_proteins_with_subsequence function
+        #Test 1: Testing with a very large sequence
+        seq = "MADGKAGEEKPEKPQRAGAAGGPEEEAEKPVKTKTVSSSNGGESSSRSAEKRSAEDEAADLPTKPTKMSKFGFAIGSQTARKASAISIRLGASKPKETVPTLAPKTLSVAAAFNEDEDSEPEEMPPEAKMRMKNIGRDTPTSAGPNSFNKGKHGFSDNQKLWERNIKSHLGNVHDQDN"
+        db.kmers["MADGKAGEEKPEKPQRAGAAGGPEEEAEKPVKTKTVSSSNGGESSSRSAEKRSAEDEAADLPTKPTKMSKFGFAIGSQTARKASAISIRLGASKPKETVPTLAPKTLSVAAAFNEDEDSEPEEMPPEAKMRMKNIGRDTPTSAGPNSFNKGKHGFSDNQKLWERNIKSHLGNVHDQDN"] = ["PCNP_MOUSE"]
+        self.assertEqual(database.get_proteins_with_subsequence(db, seq), ["PCNP_MOUSE"])
+        #Test 2: Test with a smaller sequence
+        seq = 'DLT'
+        #These are all proteins in the database with the sequence DLT occuring at least once
+        target_list = ["NEC2_MOUSE", "CELR3_MOUSE", "QCR7_MOUSE", "PEA15_MOUSE", "A2MG_MOUSE", "LEG1_MOUSE", "GDIR1_MOUSE",
+        "ACTB_MOUSE", "PGRC1_MOUSE", "GDIR2_MOUSE", "REV3L_MOUSE", "MRP9_MOUSE", "LYST_MOUSE", "NDUV2_MOUSE", "KCNQ5_MOUSE",
+        "CYB5_MOUSE", "NCPR_MOUSE", "NEC1_MOUSE", "TRNK1_MOUSE", "HNRDL_MOUSE", "LGMN_MOUSE", "NENF_MOUSE", "VAS1_MOUSE", 
+        "SET_MOUSE", "RBP17_MOUSE", "GMFB_MOUSE", "BIP_MOUSE", 'DAG1_MOUSE', "PDXD1_MOUSE", "ASC_MOUSE", "VIME_MOUSE", 
+        "CBPZ_MOUSE", "ACTA_MOUSE", "ACTBL_MOUSE"]
+        #Add to db.kmers
+        db.kmers['DLT'] = target_list
+        self.assertEqual(set(database.get_proteins_with_subsequence(db, seq)), set(target_list))
+
+    def test_get_proteins_with_subsequence_ion(self):
+        #Testing the database.get_proteins_with_subsequence_ion function
+        #Test 1: Testing with a very large sequence
+        seq = "MADGKAGEEKPEKPQRAGAAGGPEEEAEKPVKTKTVSSSNGGESSSRSAEKRSAEDEAADLPTKPTKMSKFGFAIGSQTARKASAISIRLGASKPKETVPTLAPKTLSVAAAFNEDEDSEPEEMPPEAKMRMKNIGRDTPTSAGPNSFNKGKHGFSDNQKLWERNIKSHLGNVHDQDN"
+        ion = 'b'
+        self.assertEqual(database.get_proteins_with_subsequence_ion(db, seq, ion), ["PCNP_MOUSE"])
+        #change the ion type
+        ion = 'y'
+        self.assertEqual(database.get_proteins_with_subsequence_ion(db, seq, ion), ["PCNP_MOUSE"])
+        #Test 2: Test with a smaller sequence
+        seq = 'DLT'
+        #These are all proteins in the database with the sequence DLT occuring at least once
+        target_list = ["NEC2_MOUSE", "CELR3_MOUSE", "QCR7_MOUSE", "PEA15_MOUSE", "A2MG_MOUSE", "LEG1_MOUSE", "GDIR1_MOUSE",
+        "ACTB_MOUSE", "PGRC1_MOUSE", "GDIR2_MOUSE", "REV3L_MOUSE", "MRP9_MOUSE", "LYST_MOUSE", "NDUV2_MOUSE", "KCNQ5_MOUSE",
+        "CYB5_MOUSE", "NCPR_MOUSE", "NEC1_MOUSE", "TRNK1_MOUSE", "HNRDL_MOUSE", "LGMN_MOUSE", "NENF_MOUSE", "VAS1_MOUSE", 
+        "SET_MOUSE", "RBP17_MOUSE", "GMFB_MOUSE", "BIP_MOUSE", 'DAG1_MOUSE', "PDXD1_MOUSE", "ASC_MOUSE", "VIME_MOUSE", 
+        "CBPZ_MOUSE", "ACTA_MOUSE", "ACTBL_MOUSE"]
+        #Add to db.kmers
+        db.kmers['DLT'] = target_list
+        self.assertEqual(set(database.get_proteins_with_subsequence_ion(db, seq, ion)), set(target_list))
+
+    def test_get_entry_by_name(self):
+        #Testing the database.get_entry_by_name function
+        name = 'CELR3_Mouse'
+        target_tuple = [Protein(description='sp|Q91ZI0|CELR3_MOUSE Cadherin EGF LAG seven-pass G-type receptor 3 OS=Mus musculus OX=10090 GN=Celsr3 PE=2 SV=2',
+            sequence='MARRPLWWGLPGPSTPVLLLLLLSLFPFSREELGGGGDQDWDPGVATTTGPRAQIGSGAVALCPESPGVW\
+                    EDGDPGLGVREPVFMRLRVGRQNARNGRGAPEQPNAEVVVQALGSREQEAGQGPGYLLCWHPEISSCGRT\
+                    GPLRRGSLPLDALSPGDSDLRNSSPHPSELLAQPDGSRPVAFQRNARRSIRKRVETSRCCGKLWEPGHKG\
+                    QGERSATSTVDRGPFRRDCLPGSLGSGLGEDSAPRAVRTAPTPGSAPRESRTAPGRMRSRGLFRRRFLFE\
+                    RPGPRPPGFPTGPEAKQILSTNQARPRRAANRHPQFPQYNYQTLVPENEAAGTSVLRVVAQDPDPGEAGR\
+                    LIYSLAALMNSRSLELFSIDPQSGLIRTAAALDRESMERHYLRVTAQDHGSPRLSATTMVAVTVADRNDH\
+                    APVFEQAQYRETLRENVEEGYPILQLRATDGDAPPNANLRYRFVGSPAVRTAAAAAFEIDPRSGLISTSG\
+                    RVDREHMESYELVVEASDQGQEPGPRSATVRVHITVLDENDNAPQFSEKRYVAQVREDVRPHTVVLRVTA\
+                    TDKDKDANGLVHYNIISGNSRGHFAIDSLTGEIQVMAPLDFEAEREYALRIRAQDAGRPPLSNNTGLASI\
+                    QVVDINDHAPIFVSTPFQVSVLENAPLGHSVIHIQAVDADHGENSRLEYSLTGVASDTPFVINSATGWVS\
+                    VSGPLDRESVEHYFFGVEARDHGSPPLSASASVTVTVLDVNDNRPEFTMKEYHLRLNEDAAVGTSVVSVT\
+                    AVDRDANSAISYQITGGNTRNRFAISTQGGVGLVTLALPLDYKQERYFKLVLTASDRALHDHCYVHINIT\
+                    DANTHRPVFQSAHYSVSMNEDRPVGSTVVVISASDDDVGENARITYLLEDNLPQFRIDADSGAITLQAPL\
+                    DYEDQVTYTLAITARDNGIPQKADTTYVEVMVNDVNDNAPQFVASHYTGLVSEDAPPFTSVLQISATDRD\
+                    AHANGRVQYTFQNGEDGDGDFTIEPTSGIVRTVRRLDREAVPVYELTAYAVDRGVPPLRTPVSIQVTVQD\
+                    VNDNAPVFPAEEFEVRVKENSIVGSVVAQITAVDPDDGPNAHIMYQIVEGNIPELFQMDIFSGELTALID\
+                    LDYEARQEYVIVVQATSAPLVSRATVHVRLVDQNDNSPVLNNFQILFNNYVSNRSDTFPSGIIGRIPAYD\
+                    PDVSDHLFYSFERGNELQLLVVNRTSGELRLSRKLDNNRPLVASMLVTVTDGLHSVTAQCVLRVVIITEE\
+                    LLANSLTVRLENMWQERFLSPLLGHFLEGVAAVLATPTEDVFIFNIQNDTDVGGTVLNVSFSALAPRGAG\
+                    AGAAGPWFSSEELQEQLYVRRAALAARSLLDVLPFDDNVCLREPCENYMKCVSVLRFDSSAPFLASTSTL\
+                    FRPIQPIAGLRCRCPPGFTGDFCETELDLCYSNPCRNGGACARREGGYTCVCRPRFTDCELDTEAGRCVP\
+                    GVCRNGGTCTNAPNGGFRCQCPAGGAFEGPRCEVAARSFPPSSFVMFRGLRQRFHLTLSLSFATVQPSGL\
+                    LFYNGRLNEKHDFLALELVAGQVRLTYSTGESNTVVSPTVPGGLSDGQWHTVHLRYYNKPRTDALGGAQG\
+                    PSKDKVAVLSVDDCNVAVALQFGAEIGNYSCAAAGVQTSSKKSLDLTGPLLLGGVPNLPENFPVSHKDFI\
+                    GCMRDLHIDGRRMDMAAFVANNGTMAGCQAKSHFCASGPCKNNGFCSERWGGFSCDCPVGFGGKDCRLTM\
+                    AHPYHFQGNGTLSWDFGNDMAVSVPWYLGLSFRTRATKGILMQVQLGPHSVLLCKLDRGLLSVTLNRASG\
+                    HTVHLLLDQMTVSDGRWHDLRLELQEEPGGRRGHHIFMVSLDFTLFQDTMAMGGELQGLKVKQLHVGGLP\
+                    PSSKEEGHQGLVGCIQGVWIGFTPFGSSALLPPSHRVNVEPGCTVTNPCASGPCPPHADCKDLWQTFSCT\
+                    CRPGYYGPGCVDACLLNPCQNQGSCRHLQGAPHGYTCDCVSGYFGQHCEHRVDQQCPRGWWGSPTCGPCN\
+                    CDVHKGFDPNCNKTNGQCHCKEFHYRPRGSDSCLPCDCYPVGSTSRSCAPHSGQCPCRPGALGRQCNSCD\
+                    SPFAEVTASGCRVLYDACPKSLRSGVWWPQTKFGVLATVPCPRGALGAAVRLCDEDQGWLEPDLFNCTSP\
+                    AFRELSLLLDGLELNKTALDTVEAKKLAQRLREVTGQTDHYFSQDVRVTARLLAYLLAFESHQQGFGLTA\
+                    TQDAHFNENLLWAGSALLAPETGHLWAALGQRAPGGSPGSAGLVQHLEEYAATLARNMELTYLNPVGLVT\
+                    PNIMLSIDRMEHPSSTQGARRYPRYHSNLFRGQDAWDPHTHVLLPSQASQPSPSEVLPTSSNAENATASS\
+                    VVSPPAPLEPESEPGISIVILLVYRALGGLLPAQFQAERRGARLPQNPVMNSPVVSVAVFHGRNFLRGVL\
+                    VSPINLEFRLLQTANRSKAICVQWDPPGPTDQHGMWTARDCELVHRNGSHARCRCSRTGTFGVLMDASPR\
+                    ERLEGDLELLAVFTHVVVAVSVTALVLTAAVLLSLRSLKSNVRGIHANVAAALGVAELLFLLGIHRTHNQ\
+                    LLCTAVAILLHYFFLSTFAWLLVQGLHLYRMQVEPRNVDRGAMRFYHALGWGVPAVLLGLAVGLDPEGYG\
+                    NPDFCWISIHEPLIWSFAGPIVLVIVMNGTMFLLAARTSCSTGQREAKKTSVLTLRSSFLLLLLVSASWL\
+                    FGLLAVNHSILAFHYLHAGLCGLQGLAVLLLFCVLNADARAAWTPACLGKKAAPEETRPAPGPGSGAYNN\
+                    TALFEESGLIRITLGASTVSSVSSARSGRAQDQDSQRGRSYLRDNVLVRHGSTAEHTERSLQAHAGPTDL\
+                    DVAMFHRDAGADSDSDSDLSLEEERSLSIPSSESEDNGRTRGRFQRPLRRAAQSERLLAHPKDVDGNDLL\
+                    SYWPALGECEAAPCALQAWGSERRLGLDSNKDAANNNQPELALTSGDETSLGRAQRQRKGILKNRLQYPL\
+                    VPQSRGTPELSWCRAATLGHRAVPAASYGRIYAGGGTGSLSQPASRYSSREQLDLLLRRQLSKERLEEVP\
+                    VPAPVLHPLSRPGSQERLDTAPARLEARDRGSTLPRRQPPRDYPGTMAGRFGSRDALDLGAPREWLSTLP\
+                    PPRRNRDLDPQHPPLPLSPQRQLSRDPLLPSRPLDSLSRISNSREGLDQVPSRHPSREALGPAPQLLRAR\
+                    EDPASGPSHGPSTEQLDILSSILASFNSSALSSVQSSSTPSGPHTTATASALGPSTPRSATSHSISELSP\
+                    DSEVPRSEGHS')]
+        db.proteins[name] = target_tuple
+        self.assertEqual(database.get_entry_by_name(db, name), target_tuple)
+
