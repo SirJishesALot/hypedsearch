@@ -1,6 +1,6 @@
 paths: 
   # full path to the spectra folder containing all spectra files
-  spectra_dir: '/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/raw_inputs/NOD2_E3/mzml'
+  spectra_dir: '/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/Hybrid_inputs'
   # full path to the .fasta database file
   database_file: '/mnt/c/Users/Maxim/Documents/Layer_Lab/Database/raw_inputs/NOD2_E3/filtered_mouse_database.fasta'
   # full path to the output directory

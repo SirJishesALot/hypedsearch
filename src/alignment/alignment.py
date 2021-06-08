@@ -30,6 +30,7 @@ OBJECTIFY_COUNT = 0
 
 OUT_OF_RANGE_SEQS = 0
 TOTAL_ITERATIONS = 0
+
 ####################### Public functions #######################
 
 def same_protein_alignment(
@@ -184,7 +185,7 @@ def extend_base_kmers(
     y_kmers: list, 
     spectrum: Spectrum, 
     db: Database
-    ) -> list:
+    ) -> Tuple[list,list]:
     '''Extend all the base b and y ion matched k-mers to the predicted length
     to try and find a non-hybrid alignment
 
@@ -235,9 +236,8 @@ def extend_base_kmers(
 
     file1.write("There are " + str(len(duplicate_list)) + " duplicates out of " + str(len(spec_align)) + " spectra \n")
     file1.close()
-    spec_alignments = extended_b + extended_y
 
-    return spec_align
+    return extended_b, extended_y
 
 def refine_alignments(
     spectrum: Spectrum, 
@@ -461,7 +461,8 @@ def attempt_alignment(
 
     # what we want to do first is try just extending the base k-mers to 
     # see if we can find a quality non hybrid alignment
-    non_hybrids = extend_base_kmers(b_hits, y_hits, spectrum, db)
+    b_non_hybrids, y_non_hybrids = extend_base_kmers(b_hits, y_hits, spectrum, db)
+    non_hybrids = b_non_hybrids + y_non_hybrids
 
     # run the first round of alignments
     st = time.time()
@@ -504,7 +505,7 @@ def attempt_alignment(
    #---------------------------------------------------#
    #            FIRST PASS: try just non hybrids
    #---------------------------------------------------#
-
+    refine_start = time.time()
     non_hybrid_refined = refine_alignments(
         spectrum, 
         db, 
@@ -514,7 +515,10 @@ def attempt_alignment(
         truth=truth, 
         fall_off=fall_off
     )
-
+    refine_time = time.time() - refine_start
+    with open(TIME_LOG_FILE, 'a') as o:
+        o.write('Non-hybrid refine time:' + str(refine_time))
+        o.write('\n')
     non_hybrid_alignments = []
 
     # we have a tracker to make sure we dont have duplicates
@@ -591,18 +595,19 @@ def attempt_alignment(
         # write the time log to file
         if is_last:
 
-            with open(TIME_LOG_FILE, 'w') as o:
+            with open(TIME_LOG_FILE, 'a') as o:
                 o.write(f'B and Y full bipartite alignment time: {FIRST_ALIGN_TIME}s \t average dataset size{FIRST_ALIGN_COUNT/TOTAL_ITERATIONS} \t seconds/op: {FIRST_ALIGN_TIME/FIRST_ALIGN_COUNT}s\n')
                 o.write(f'Removing ambiguous hybrids time: {AMBIGUOUS_REMOVAL_TIME}s \t average dataset size{AMBIGUOUS_REMOVAL_COUNT/TOTAL_ITERATIONS} \t seconds/op: {AMBIGUOUS_REMOVAL_TIME/AMBIGUOUS_REMOVAL_COUNT}s\n')
                 o.write(f'Matching precursor masses time: {PRECURSOR_MASS_TIME}s \t average dataset size{PRECURSOR_MASS_COUNT/TOTAL_ITERATIONS} \t seconds/op: {PRECURSOR_MASS_TIME/PRECURSOR_MASS_COUNT}s\n')
                 o.write(f'Turning matches into objects time: {OBJECTIFY_TIME} \t average dataset size{OBJECTIFY_COUNT/TOTAL_ITERATIONS} \t seconds/op: {OBJECTIFY_TIME/OBJECTIFY_COUNT}\n')
-                o.write(f'Initial sequences with too many or few amino acids to try to precursor match: {OUT_OF_RANGE_SEQS}/{PRECURSOR_MASS_COUNT}')
+                o.write(f'Initial sequences with too many or few amino acids to try to precursor match: {OUT_OF_RANGE_SEQS}/{PRECURSOR_MASS_COUNT}\n')
 
         return Alignments(spectrum, top_n_alignments)
 
     #---------------------------------------------------#
     #            SECOND PASS: try just hybrids
     #---------------------------------------------------#
+    refine_start = time.time()
     hybrid_refined = refine_alignments(
         spectrum, 
         db, 
@@ -612,6 +617,10 @@ def attempt_alignment(
         truth=truth, 
         fall_off=fall_off
     )
+    refine_time = time.time() - refine_start
+    with open(TIME_LOG_FILE, 'a') as o:
+        o.write('Hybrid refine time:' + str(refine_time))
+        o.write('\n')
 
     hybrid_alignments = []
 
@@ -630,6 +639,7 @@ def attempt_alignment(
 
         # the the precursor distance, b score, y score, total score, 
         # total mass error, and parent proteins
+        scoring_start = time.time()
         p_d = scoring.precursor_distance(
             spectrum.precursor_mass, 
             gen_spectra.get_precursor(hr, spectrum.precursor_charge)
@@ -671,7 +681,6 @@ def attempt_alignment(
             )
             #looking at scores
             file1 = open("metadata.txt", 'a')
-            file1.write("non_hybrid_scores \n")
             i = 0
             avg_b_score = 0
             avg_y_score = 0
@@ -683,11 +692,11 @@ def attempt_alignment(
                 i = i + 1
             
             avg_b_score = avg_b_score/i
-            file1.write("average b score " + str(avg_b_score) + '\n')
+            file1.write("average non_hybrid b score:" + str(avg_b_score) + '\n')
             avg_y_score = avg_y_score/i
-            file1.write("average y score " + str(avg_y_score) + '\n')
+            file1.write("average non_hybrid y score:" + str(avg_y_score) + '\n')
             avg_total_score = avg_total_score/i
-            file1.write("average total score " + str(avg_total_score) + '\n')
+            file1.write("average non_hybrid total score:" + str(avg_total_score) + '\n')
             file1.close()
 
         
@@ -712,7 +721,6 @@ def attempt_alignment(
             )
             #looking at scores
             file1 = open("metadata.txt", 'a')
-            file1.write("hybrid_scores \n")
             i = 0
             avg_b_score = 0
             avg_y_score = 0
@@ -724,13 +732,16 @@ def attempt_alignment(
                 i = i + 1
             
             avg_b_score = avg_b_score/i
-            file1.write("average b score " + str(avg_b_score) + '\n')
+            file1.write("average hybrid b score:" + str(avg_b_score) + '\n')
             avg_y_score = avg_y_score/i
-            file1.write("average y score " + str(avg_y_score) + '\n')
+            file1.write("average hybrid y score:" + str(avg_y_score) + '\n')
             avg_total_score = avg_total_score/i
-            file1.write("average total score " + str(avg_total_score) + '\n')
+            file1.write("average hybrid total score:" + str(avg_total_score) + '\n')
             file1.close()
 
+    SCORING_TIME = time.time() - scoring_start
+    with open(TIME_LOG_FILE, 'a') as o:
+        o.write("Total scoring time: " + str(SCORING_TIME) + '\n')
     OBJECTIFY_COUNT += len(hybrid_refined)
     OBJECTIFY_TIME += time.time() - st
 
@@ -755,12 +766,12 @@ def attempt_alignment(
     # write the time log to file
     if is_last:
 
-        with open(TIME_LOG_FILE, 'w') as o:
+        with open(TIME_LOG_FILE, 'a') as o:
             o.write(f'B and Y full bipartite alignment time: {FIRST_ALIGN_TIME}s \t average dataset size{FIRST_ALIGN_COUNT/TOTAL_ITERATIONS} \t seconds/op: {FIRST_ALIGN_TIME/FIRST_ALIGN_COUNT}s\n')
             o.write(f'Removing ambiguous hybrids time: {AMBIGUOUS_REMOVAL_TIME}s \t average dataset size{AMBIGUOUS_REMOVAL_COUNT/TOTAL_ITERATIONS} \t seconds/op: {AMBIGUOUS_REMOVAL_TIME/AMBIGUOUS_REMOVAL_COUNT}s\n')
             o.write(f'Matching precursor masses time: {PRECURSOR_MASS_TIME}s \t average dataset size{PRECURSOR_MASS_COUNT/TOTAL_ITERATIONS} \t seconds/op: {PRECURSOR_MASS_TIME/PRECURSOR_MASS_COUNT}s\n')
             o.write(f'Turning matches into objects time: {OBJECTIFY_TIME} \t average dataset size{OBJECTIFY_COUNT/TOTAL_ITERATIONS} \t seconds/op: {OBJECTIFY_TIME/OBJECTIFY_COUNT}\n')
-            o.write(f'Initial sequences with too many or few amino acids to try to precursor match: {OUT_OF_RANGE_SEQS}/{PRECURSOR_MASS_COUNT}')
+            o.write(f'Initial sequences with too many or few amino acids to try to precursor match: {OUT_OF_RANGE_SEQS}/{PRECURSOR_MASS_COUNT}\n')
 
     return Alignments(spectrum, top_n_alignments)
    

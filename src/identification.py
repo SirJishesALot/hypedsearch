@@ -13,7 +13,13 @@ import multiprocessing as mp
 import copy
 import json
 
+TIME_LOG_FILE = 'timelog.txt'
+o = open(TIME_LOG_FILE, 'a')
+ID_SPECTRUM = 0
+MULTIPROCESSING = 0
 # top results to keep for creating an alignment
+global alignment_times
+alignment_times = []
 TOP_X = 50
 
 def id_spectrum(
@@ -66,7 +72,7 @@ def id_spectrum(
     :returns: Alignments for the spectrum. If no alignment can be created, and empty Alignments object is inserted
     :rtype: Alignments
     '''
-
+    start_time = time.time()
     # convert the ppm tolerance of the precursor to an int for the rest of the time
     precursor_tolerance = utils.ppm_to_da(spectrum.precursor_mass, precursor_tolerance)
 
@@ -141,7 +147,8 @@ def id_spectrum(
             return Alignments(spectrum, [])
 
     # create an alignment for the spectrum
-    return alignment.attempt_alignment(
+    align_start = time.time()
+    alignments = alignment.attempt_alignment(
         spectrum, 
         db, 
         filtered_b, 
@@ -153,6 +160,12 @@ def id_spectrum(
         fall_off=fall_off, 
         is_last=is_last
     )
+    TOT_ALIGNMENT = time.time() - align_start
+    alignment_times.append(TOT_ALIGNMENT)
+    with open ('timelog.txt', 'a') as o:
+        for i in alignment_times:
+            o.write('alignment time:' + str(i) + '\n')
+    return alignments
 
 
 def id_spectra(
@@ -231,7 +244,8 @@ def id_spectra(
     :returns: alignments for all spectra save in the form {spectrum.id: Alignments}
     :rtype: dict
     '''
-
+    print('in id_spectra \n')
+    preprocessing_start = time.time()
     DEV = False
     truth = None
 
@@ -287,6 +301,10 @@ File will be of the form
         fall_off = mp.Manager().dict()
         truth = mp.Manager().dict(truth)
 
+    preprocessing_time = time.time() - preprocessing_start
+    with open(TIME_LOG_FILE, 'a') as o:
+        o.write('Hybrid refine time:' + str(preprocessing_time) + '\n')
+
     # if we only get 1 core, don't do the multiprocessing bit
     if cores == 1:
         # go through and id all spectra
@@ -327,7 +345,8 @@ File will be of the form
             )
 
     else:
-
+        
+        MULTIPROCESSING = time.time()
         print('Initializing other processors...')
         results = mp.Manager().dict()
 
@@ -350,6 +369,10 @@ File will be of the form
             p.start()
         print('Done.')
 
+        o = open('timelog.txt', 'a')
+        MULTIPROCESSING = time.time() - MULTIPROCESSING
+        o.write("Time to spin up cores:" + MULTIPROCESSING)
+        o.write('\n')
         # go through and id all spectra
         for i, spectrum in enumerate(spectra):
             print(f'\rStarting job for {i+1}/{len(spectra)} [{to_percent(i+1, len(spectra))}%]', end='')
@@ -403,7 +426,8 @@ File will be of the form
             safe_write_fall_off[k] = v._asdict()
 
         JSON.save_dict(output_dir + 'fall_off.json', safe_write_fall_off)
-        
+
+
     return results
 
 def mp_id_spectrum(
