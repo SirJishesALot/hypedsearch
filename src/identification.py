@@ -244,7 +244,6 @@ def id_spectra(
     :returns: alignments for all spectra save in the form {spectrum.id: Alignments}
     :rtype: dict
     '''
-    print('in id_spectra \n')
     preprocessing_start = time.time()
     DEV = False
     truth = None
@@ -371,7 +370,7 @@ File will be of the form
 
         o = open('timelog.txt', 'a')
         MULTIPROCESSING = time.time() - MULTIPROCESSING
-        o.write("Time to spin up cores:" + MULTIPROCESSING)
+        o.write("Time to spin up cores:" + str(MULTIPROCESSING))
         o.write('\n')
         # go through and id all spectra
         for i, spectrum in enumerate(spectra):

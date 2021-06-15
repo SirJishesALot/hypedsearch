@@ -124,7 +124,7 @@ tolerance = 20
 precursor_tolerance = 10
 peak_filter = 25
 relative_abundance_filter = 0
-cores = 16
+cores = 2
 
 for dataset in datasets:
         

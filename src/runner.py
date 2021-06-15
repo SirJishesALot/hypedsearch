@@ -163,9 +163,9 @@ def run(args: dict) -> None:
                 hybrid_y.append(split[1])
 
     m.close()
-    file1 = open('metadata.txt', 'w')
-    file1.write('')
-    file1.close()
+    # file1 = open('metadata.txt', 'w')
+    # file1.write('')
+    # file1.close()
     avg_non_hybrid_b = 0
     avg_non_hybrid_y = 0
     avg_non_hybrid_tot = 0
