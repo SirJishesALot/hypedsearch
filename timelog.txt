@@ -1,26 +1,11 @@
-Hybrid refine time:109.44132399559021
-Non-hybrid refine time:2.388986110687256
-Hybrid refine time:77.18715286254883
-Total scoring time: 0.004264354705810547
-alignment time:80.6787440776825
-Non-hybrid refine time:0.059246063232421875
-Hybrid refine time:3.65037202835083
-Total scoring time: 0.001963376998901367
-alignment time:80.6787440776825
-alignment time:3.857010841369629
-Non-hybrid refine time:2.4503588676452637
-Hybrid refine time:18.307665586471558
-Total scoring time: 0.0020761489868164062
-B and Y full bipartite alignment time: 0.586428165435791s 	 average dataset size100.0 	 seconds/op: 0.001954760551452637s
-Removing ambiguous hybrids time: 2.4449102878570557s 	 average dataset size8281.333333333334 	 seconds/op: 9.841049299054322e-05s
-Matching precursor masses time: 101.53658199310303s 	 average dataset size6659.333333333333 	 seconds/op: 0.005082419761392684s
-Turning matches into objects time: 0.9347140789031982 	 average dataset size10222.333333333334 	 seconds/op: 3.0479475622108397e-05
-Initial sequences with too many or few amino acids to try to precursor match: 1532/19978
-alignment time:80.6787440776825
-alignment time:3.857010841369629
-alignment time:21.235400199890137
-average hybrid refine time: 41.71730289459229
-average non hybrid refine time: 1.2246477603912354
-average total scoring time 0.00207597017288208
-average total alignment time 38.71223630223955
-time to spin up cores: 0
+Hybrid refine time:181.3898413181305
+Non-hybrid refine time:0.20495152473449707
+Hybrid refine time:14.250674724578857
+Total scoring time: 0.0008933544158935547
+alignment time:18.97459650039673
+Non-hybrid refine time:1.053239107131958
+Hybrid refine time:16.818556308746338
+Total scoring time: 0.0008265972137451172
+alignment time:18.97459650039673
+alignment time:35.90401101112366
+Non-hybrid refine time:0.9392006397247314

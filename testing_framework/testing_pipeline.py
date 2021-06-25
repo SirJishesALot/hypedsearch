@@ -21,100 +21,10 @@ from pyteomics import fasta
 from src import runner, utils, gen_spectra
 from src.scoring import scoring
 from src.objects import Spectrum
+from testing_framework import testing_utils
 # DEFINE THE DATA
 
-def root_path():
-    return os.path.abspath(os.sep)
-
-root = root_path()
-
-# define the list of datasets
-# make it a list of tuples of (mzml, spectrum mill *sv, database, prefix dir)
-Dataset = namedtuple(
-    'Dataset', 
-    ['spectra_dir', 'spectrumMill_results', 'full_database', 'highest_dir', 'filtered_fasta']
-)
-
-
-raw_prefix = os.path.join(root, 'mnt', 'c', 'Users', 'Maxim', 'Documents', 'Layer_Lab', 'Database', 'raw_inputs')
-NOD2_top_dir = 'NOD2_E3'
-BALB3_top_dir = 'BALB3_E3'
-
-
-NOD2_data = Dataset(
-    os.path.join(raw_prefix, NOD2_top_dir, 'mzml') + os.path.sep,
-    os.path.join(raw_prefix, NOD2_top_dir, 'NOD2_E3_results.ssv'),
-    os.path.join(raw_prefix, 'mouse_database.fasta'),
-    os.path.join(raw_prefix, NOD2_top_dir) + os.path.sep,
-    ''
-)
-
-BALB3_data = Dataset(
-    os.path.join(raw_prefix, BALB3_top_dir, 'mzxml') + os.path.sep,
-    os.path.join(raw_prefix, NOD2_top_dir, 'BALB3_E3.ssv'),
-    os.path.join(raw_prefix, 'mouse_database.fasta') + os.path.sep, 
-    os.path.join(raw_prefix, BALB3_top_dir),
-    ''
-)
-
-# datasets = [NOD2_data, BALB3_data]
-datasets = [NOD2_data]
-
-# FILTER THE DATA
-
-def db_filter(db_file: str, results_file: str, output_fasta: str) -> None:
-    '''
-    Create the subset of proteins needed for the database search
-    
-    Inputs:
-        db_file:        (str)  the original fasta file
-        results_file:   (str)  the results ssv file from spectrumMill
-        output_fasta:   (str)  the fasta file to write to
-    '''
-    
-    # load all protiens into a dictionary
-    db = {}
-    for entry in fasta.read(db_file):
-        name = entry.description.split('|')[2]
-        name = name[:name.index('OS=')-1]
-        name = ' '.join(name.split(' ')[1:])
-        db[name.lower()] = entry
-
-    # load the results ssv into a dataframe 
-    res_df = pd.read_csv(results_file, sep=';')
-        
-    print(f'Number of results: {len(res_df.index)}')
-
-    # keep track of those we want
-    filtered = []
-    for idx, row in res_df.iterrows():
-        key = row['entry_name'].lower()
-        
-        if key not in db:
-            continue
-            
-        filtered.append(db[key])
-
-    filtered = list(set(filtered))
-    
-    print(f'Number of proteins in database was reduced from {len(db)} to {len(filtered)}')
-    
-    fasta.write(filtered, output_fasta, file_mode='w')
-
-updated_datasets = []
-
-for dataset in datasets:
-        
-    # make a file name for the output for the filtered fasta file
-    output_fasta = os.path.join(dataset.highest_dir, 'filtered_' + dataset.highest_dir.split(os.path.sep)[-1].replace(os.path.sep, '') + '_database.fasta')
-        
-    # check to see if we've created it before
-    if not os.path.isfile(output_fasta):
-        db_filter(dataset[2], dataset[1], output_fasta)
-    
-    updated_datasets.append(dataset._replace(filtered_fasta=output_fasta))
-
-datasets = updated_datasets
+datasets = testing_utils.define_data()
 
 # NOW RUN HYPEDSEARCH
 
