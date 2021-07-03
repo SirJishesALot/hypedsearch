@@ -1,11 +1,18 @@
-Hybrid refine time:181.3898413181305
-Non-hybrid refine time:0.20495152473449707
-Hybrid refine time:14.250674724578857
-Total scoring time: 0.0008933544158935547
-alignment time:18.97459650039673
-Non-hybrid refine time:1.053239107131958
-Hybrid refine time:16.818556308746338
-Total scoring time: 0.0008265972137451172
-alignment time:18.97459650039673
-alignment time:35.90401101112366
-Non-hybrid refine time:0.9392006397247314
+Time to build database: 0.025835752487182617
+Time to load in spectra: 0.03939080238342285
+Time to map boundaries to kmers: 100.67449998855591
+B and Y full bipartite alignment time: 0.5989246368408203s 	 average dataset size100.0 	 seconds/op: 0.001996415456136068s
+Removing ambiguous hybrids time: 2.2070608139038086s 	 average dataset size8329.666666666666 	 seconds/op: 8.832129392547956e-05s
+Matching precursor masses time: 91.95736026763916s 	 average dataset size6660.0 	 seconds/op: 0.004602470483865824s
+Turning matches into objects time: 0.4012587070465088 	 average dataset size10274.0 	 seconds/op: 1.3018581112403763e-05
+Initial sequences with too many or few amino acids to try to precursor match: 1532/19980
+average b scoring time: 0.292816956837972
+average y scoring time: 0.30846985181172687
+Time to filter out top 50 kmers: 0.004147847493489583
+average extension time: 0.03411094347635905
+average non hybrid refinement time 1.505888859430949
+average non hybrid scoring time 0.00032389163970947266
+average hybrid refinement time 29.899158000946045
+average hybrid scoring time 0.0002726449884318484
+average extension time: 0.03411094347635905
+average alignment time: 31.776612520217896

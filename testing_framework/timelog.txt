@@ -1,0 +1,21 @@
+Hybrid refine time:64.59186935424805
+Time to spin up cores:4.980244159698486
+Non-hybrid refine time:0.02094554901123047
+Non-hybrid refine time:1.3759291172027588
+Hybrid refine time:2.116954803466797
+Total scoring time: 0.0006120204925537109
+alignment time:2.2125511169433594
+Non-hybrid refine time:1.2681348323822021
+Hybrid refine time:9.38088870048523
+Total scoring time: 0.00026345252990722656
+alignment time:2.2125511169433594
+alignment time:10.900902271270752
+Hybrid refine time:35.440616846084595
+Total scoring time: 0.0005772113800048828
+alignment time:37.324161529541016
+average hybrid refine time: 22.306065940856932
+average non hybrid refine time: 0.6662523746490479
+average total scoring time 0.0003631711006164551
+average total alignment time 10.530033206939697
+time to spin up cores: 4.980244159698486
+

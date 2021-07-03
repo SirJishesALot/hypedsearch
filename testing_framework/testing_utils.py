@@ -84,6 +84,7 @@ def define_data():
 
 
     NOD2_data = Dataset(
+        # os.path.join(root, 'mnt', 'c', 'Users', 'Maxim', 'Documents', 'Layer_Lab', 'Database', 'Hybrid_inputs') + os.path.sep,
         os.path.join(raw_prefix, NOD2_top_dir, 'mzml') + os.path.sep,
         os.path.join(raw_prefix, NOD2_top_dir, 'NOD2_E3_results.ssv'),
         os.path.join(raw_prefix, 'mouse_database.fasta'),
@@ -118,7 +119,7 @@ def define_data():
         updated_datasets.append(dataset._replace(filtered_fasta=output_fasta))
 
     datasets = updated_datasets
-    return datasets, NOD2_data
+    return datasets
 
 def preprocess_input_spectra(spectra_folder, ppm_tolerance, peak_filter: int = 0, relative_abundance_filter: float = 0.0):
     # returns a list of spectrum objects

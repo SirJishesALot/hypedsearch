@@ -31,6 +31,19 @@ OBJECTIFY_COUNT = 0
 OUT_OF_RANGE_SEQS = 0
 TOTAL_ITERATIONS = 0
 
+global extension_times
+extension_times = []
+global initial_alignment_times
+initial_alignment_times = []
+global Non_hybrid_refine_time
+Non_hybrid_refine_time = []
+global non_hybrid_scoring_times
+non_hybrid_scoring_times = []
+global Hybrid_refine_times
+Hybrid_refine_times = []
+global hybrid_scoring_times
+hybrid_scoring_times = []
+
 ####################### Public functions #######################
 
 def same_protein_alignment(
@@ -210,7 +223,7 @@ def extend_base_kmers(
     for seq in y_kmers:
         extended_y += [x for x in alignment_utils.extend_non_hybrid(seq, spectrum, 'y', db)]
 
-    file1 = open("metadata.txt", "a")
+    # file1 = open("metadata.txt", "a")
     # file1.write("b_kmers: \n")
     # file1.writelines([(L + '\n') for L in b_kmers])
     # file1.write("extended_b_kmers: \n")
@@ -226,16 +239,16 @@ def extend_base_kmers(
     # for seq in extended_y:
     #     file1.write(seq + '\n')
 
-    spec_align = extended_y + extended_b
-    #Checking for duplicates
-    duplicate_list = []
-    for seq in extended_b:
-        for y_seq in extended_y:
-            if seq == y_seq:
-                duplicate_list += seq
+    # spec_align = extended_y + extended_b
+    # #Checking for duplicates
+    # duplicate_list = []
+    # for seq in extended_b:
+    #     for y_seq in extended_y:F
+    #         if seq == y_seq:
+    #             duplicate_list += seq
 
-    file1.write("There are " + str(len(duplicate_list)) + " duplicates out of " + str(len(spec_align)) + " spectra \n")
-    file1.close()
+    # file1.write("There are " + str(len(duplicate_list)) + " duplicates out of " + str(len(spec_align)) + " spectra \n")
+    # file1.close()
 
     return extended_b, extended_y
 
@@ -248,7 +261,7 @@ def refine_alignments(
     truth: dict = None, 
     fall_off: dict = None
 ) -> list:
-    '''Regine the rough alignmnets made. This includes precursor matching and 
+    '''Refine the rough alignmnets made. This includes precursor matching and 
     ambiguous hybrid removals/replacements
 
     :param spectrum: observed spectrum in question
@@ -461,12 +474,16 @@ def attempt_alignment(
 
     # what we want to do first is try just extending the base k-mers to 
     # see if we can find a quality non hybrid alignment
+    extension_time = time.time()
     b_non_hybrids, y_non_hybrids = extend_base_kmers(b_hits, y_hits, spectrum, db)
+    extension_times.append(time.time() - extension_time)
     non_hybrids = b_non_hybrids + y_non_hybrids
 
     # run the first round of alignments
     st = time.time()
+    initial_alignment_start = time.time()
     a = align_b_y(b_hits, y_hits, spectrum, db) + [(kmer, None) for kmer in non_hybrids]
+    initial_alignment_times.append(time.time() - initial_alignment_start)
 
     FIRST_ALIGN_COUNT += len(b_hits) + len(y_hits)
     FIRST_ALIGN_TIME += time.time() - st
@@ -516,9 +533,7 @@ def attempt_alignment(
         fall_off=fall_off
     )
     refine_time = time.time() - refine_start
-    with open(TIME_LOG_FILE, 'a') as o:
-        o.write('Non-hybrid refine time:' + str(refine_time))
-        o.write('\n')
+    Non_hybrid_refine_time.append(refine_time)
     non_hybrid_alignments = []
 
     # we have a tracker to make sure we dont have duplicates
@@ -536,6 +551,7 @@ def attempt_alignment(
 
         # the the precursor distance, b score, y score, total score, 
         # total mass error, and parent proteins
+        scoring_start = time.time()
         p_d = scoring.precursor_distance(
             spectrum.precursor_mass, 
             gen_spectra.get_precursor(nhr, spectrum.precursor_charge)
@@ -557,9 +573,10 @@ def attempt_alignment(
 
         t_score = b_score + y_score + scoring.digest_score(nhr, db, digest_type)
 
+        non_hybrid_scoring_times.append(time.time() - scoring_start)
         parents = alignment_utils.get_parents(nhr, db)
 
-        non_hybrid_alignments.append(
+        non_hybrid_alignments.append(   
             SequenceAlignment(
                 parents[0], 
                 nhr, 
@@ -591,7 +608,6 @@ def attempt_alignment(
             reverse=True
         )
         top_n_alignments = sorted_alignments[:n]
-
         # write the time log to file
         if is_last:
 
@@ -618,9 +634,7 @@ def attempt_alignment(
         fall_off=fall_off
     )
     refine_time = time.time() - refine_start
-    with open(TIME_LOG_FILE, 'a') as o:
-        o.write('Hybrid refine time:' + str(refine_time))
-        o.write('\n')
+    Hybrid_refine_times.append(refine_time)
 
     hybrid_alignments = []
 
@@ -659,6 +673,8 @@ def attempt_alignment(
 
         total_error = scoring.total_mass_error(spectrum, hr, ppm_tolerance)
 
+        hybrid_scoring_times.append(time.time() - scoring_start)
+
         parents = alignment_utils.get_parents(hr, db)
         
         t_score = None
@@ -679,25 +695,25 @@ def attempt_alignment(
                     total_error
                 )
             )
-            #looking at scores
-            file1 = open("metadata.txt", 'a')
-            i = 0
-            avg_b_score = 0
-            avg_y_score = 0
-            avg_total_score = 0
-            for score in non_hybrid_alignments:
-                avg_b_score = avg_b_score + score[2]
-                avg_y_score = avg_y_score + score[3]
-                avg_total_score = avg_total_score + score[4]
-                i = i + 1
+            # #looking at scores
+            # file1 = open("metadata.txt", 'a')
+            # i = 0
+            # avg_b_score = 0
+            # avg_y_score = 0
+            # avg_total_score = 0
+            # for score in non_hybrid_alignments:
+            #     avg_b_score = avg_b_score + score[2]
+            #     avg_y_score = avg_y_score + score[3]
+            #     avg_total_score = avg_total_score + score[4]
+            #     i = i + 1
             
-            avg_b_score = avg_b_score/i
-            file1.write("average non_hybrid b score:" + str(avg_b_score) + '\n')
-            avg_y_score = avg_y_score/i
-            file1.write("average non_hybrid y score:" + str(avg_y_score) + '\n')
-            avg_total_score = avg_total_score/i
-            file1.write("average non_hybrid total score:" + str(avg_total_score) + '\n')
-            file1.close()
+            # avg_b_score = avg_b_score/i
+            # file1.write("average non_hybrid b score:" + str(avg_b_score) + '\n')
+            # avg_y_score = avg_y_score/i
+            # file1.write("average non_hybrid y score:" + str(avg_y_score) + '\n')
+            # avg_total_score = avg_total_score/i
+            # file1.write("average non_hybrid total score:" + str(avg_total_score) + '\n')
+            # file1.close()
 
         
         # we get a hybrid back
@@ -719,29 +735,26 @@ def attempt_alignment(
                     total_error
                 )
             )
-            #looking at scores
-            file1 = open("metadata.txt", 'a')
-            i = 0
-            avg_b_score = 0
-            avg_y_score = 0
-            avg_total_score = 0
-            for score in hybrid_alignments:
-                avg_b_score = avg_b_score + score[4]
-                avg_y_score = avg_y_score + score[5]
-                avg_total_score = avg_total_score + score[6]
-                i = i + 1
+            # #looking at scores
+            # file1 = open("metadata.txt", 'a')
+            # i = 0
+            # avg_b_score = 0
+            # avg_y_score = 0
+            # avg_total_score = 0
+            # for score in hybrid_alignments:
+            #     avg_b_score = avg_b_score + score[4]
+            #     avg_y_score = avg_y_score + score[5]
+            #     avg_total_score = avg_total_score + score[6]
+            #     i = i + 1
             
-            avg_b_score = avg_b_score/i
-            file1.write("average hybrid b score:" + str(avg_b_score) + '\n')
-            avg_y_score = avg_y_score/i
-            file1.write("average hybrid y score:" + str(avg_y_score) + '\n')
-            avg_total_score = avg_total_score/i
-            file1.write("average hybrid total score:" + str(avg_total_score) + '\n')
-            file1.close()
+            # avg_b_score = avg_b_score/i
+            # file1.write("average hybrid b score:" + str(avg_b_score) + '\n')
+            # avg_y_score = avg_y_score/i
+            # file1.write("average hybrid y score:" + str(avg_y_score) + '\n')
+            # avg_total_score = avg_total_score/i
+            # file1.write("average hybrid total score:" + str(avg_total_score) + '\n')
+            # file1.close()
 
-    SCORING_TIME = time.time() - scoring_start
-    with open(TIME_LOG_FILE, 'a') as o:
-        o.write("Total scoring time: " + str(SCORING_TIME) + '\n')
     OBJECTIFY_COUNT += len(hybrid_refined)
     OBJECTIFY_TIME += time.time() - st
 
